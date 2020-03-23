@@ -1,0 +1,8 @@
+version: '3'
+services:
+  compiler:
+    hostname: compiler
+    privileged: true
+    image: 'aeternity/aesophia_http:v4.1.0'
+    ports:
+      - '3080:3080'
