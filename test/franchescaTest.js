@@ -28,7 +28,12 @@ describe('Franchesca Contract', () => {
         deployer = new Deployer('local', ownerKeyPair.secretKey)
     })
 
-    let params = ['ak_286tvbfP6xe4GY9sEbuN2ftx1LpavQwFVcPor9H4GxBtq5fXws', 35000, 6, ['Francisca', 'Ruiz', '35463345']];
+    let params = ['ak_286tvbfP6xe4GY9sEbuN2ftx1LpavQwFVcPor9H4GxBtq5fXws',
+                  'Francisca',
+                  'Ruiz',
+                  '35463345',
+                  35000,
+                  6];
 
     it('Deploying Franchesca Contract', async () => {
         const deployedPromise = deployer.deploy(EXAMPLE_CONTRACT_PATH, params) // Deploy it

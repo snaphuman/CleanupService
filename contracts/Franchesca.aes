@@ -1,5 +1,11 @@
+include "Pair.aes"
 
 contract Franchesca =
+
+    record person = {
+        name: string,
+        lastname: string,
+        id: int}
 
     record work_day = {
         start: int,
@@ -10,49 +16,49 @@ contract Franchesca =
         amount: int}
 
     record state = {
-        employee: address,
-        info: (string * string * int),
+        employee: (address * person),
         duration: int,
         base_salary: int,
         worked_days: map(string, work_day),
         payments: map(int, payment)}
-    
-    stateful entrypoint init(employee: address, 
-                             base_salary: int, 
-                             duration: int,
-                             info: (string * string * int)) = 
-   
-        {employee = employee,
-         info = info,
-         base_salary = base_salary, 
-         duration = duration, 
-         worked_days = {}, 
+
+    stateful entrypoint init(beneficiary: address,
+                             name: string,
+                             lastname: string,
+                             id: int,
+                             base_salary: int,
+                             duration: int) =
+
+        let person = {name = name, lastname = lastname, id = id}
+
+        {employee = (beneficiary, person),
+         base_salary = base_salary,
+         duration = duration,
+         worked_days = {},
          payments = {}}
 
     stateful entrypoint check_in (date: string) : unit =
-        let work_day = { start = Chain.block_height, end = 0 } 
+        let work_day = { start = Chain.block_height, end = 0 }
         put(state{ worked_days[date] = work_day})
 
     stateful entrypoint check_out (date: string) : unit =
         let is_working = Map.member(date, state.worked_days)
         require(!is_working, "Francisca did'nt started to work in this date")
-        let work_day = { start = state.worked_days[date].start, end = Chain.block_height }        
+        let work_day = { start = state.worked_days[date].start, end = Chain.block_height }
         put(state{ worked_days[date] = work_day})
 
     stateful entrypoint pay (date: string) : unit =
         let duration = state.duration
         require(duration =< 0, "contract is donde no payments left")
         let salary = calculate_salary(state.base_salary)
-        let employee = state.employee
+        let beneficiary = Pair.fst(state.employee)
         let payment = {date = date, amount = salary}
-        
-        put(state{ duration = state.duration - 1})
-        put(state{ payments[duration] = payment})
-        Chain.spend(employee, salary)
-    
+
+        put(state{ payments[duration] = payment, duration = state.duration - 1})
+
+        Chain.spend(beneficiary, salary)
+
     // Internal functions
 
     function calculate_salary (base_salary : int) =
         base_salary * 1285 / 1000
-
-
