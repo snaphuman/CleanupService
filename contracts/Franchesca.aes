@@ -71,6 +71,17 @@ contract Franchesca =
 
         Chain.spend(beneficiary, total)
 
+    // Public functions to help contract testing
+
+    entrypoint is_working() : bool =
+        state.is_working
+
+    entrypoint current_height() : int =
+        Chain.block_height
+
+    entrypoint work() =
+        state.work
+
     // Internal functions
 
     function calculate_salary (base_salary : int) =

@@ -66,4 +66,17 @@ describe('Franchesca Contract', () => {
         instance = deployedContractOwner
     });
 
+    it('Franchesca should check_in to work and change is_working state to true', async () => {
+        await instance.check_in();
+        let is_working = (await instance.is_working()).decodedResult;
+        assert.isTrue(is_working, 'Franchesca started to work');
+    });
+
+    it('Contract should register the work day after franchescas check_in', async () => {
+        let current_height = (await instance.current_height()).decodedResult;
+        let work = (await instance.work()).decodedResult;
+        assert.hasAllKeys(work, ['start', 'end'], 'Franchesca Started her work_day')
+        assert(work.start >= 0, 'Franchesca Started to work at' + work.start)
+    });
+
 })
