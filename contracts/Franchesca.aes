@@ -46,17 +46,18 @@ contract Franchesca =
           payments = {} }
 
     stateful entrypoint check_in() : unit =
+        require(!state.is_working, "Franchesca already checked in")
         let work_day = { start = Chain.block_height, end = 0 }
         put(state{ is_working = true, work = Some(work_day) })
 
     stateful entrypoint check_out() : unit =
-        require(!state.is_working, "Mercedes didn't work today")
+        require(state.is_working, "Mercedes didn't work today")
         let work_day =
           switch(state.work)
             None => abort("Mercedes didn't check in")
             Some(work_day) => work_day{ end = Chain.block_height }
 
-        put(state{ worked_days = [work_day] ++ state.worked_days })
+        put(state{ worked_days = [work_day] ++ state.worked_days, is_working = false })
 
     stateful entrypoint pay() : unit =
         require(state.duration =< 0, "contract is done, no payments left")

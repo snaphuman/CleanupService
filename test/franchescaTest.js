@@ -68,7 +68,7 @@ describe('Franchesca Contract', () => {
 
     it('Franchesca should check_in to work and change is_working state to true', async () => {
         await instance.check_in();
-        let is_working = (await instance.is_working()).decodedResult;
+        is_working = (await instance.is_working()).decodedResult;
         assert.isTrue(is_working, 'Franchesca started to work');
     });
 
@@ -77,6 +77,12 @@ describe('Franchesca Contract', () => {
         let work = (await instance.work()).decodedResult;
         assert.hasAllKeys(work, ['start', 'end'], 'Franchesca Started her work_day')
         assert(work.start >= 0, 'Franchesca Started to work at' + work.start)
+    });
+
+    it('Franchesca should check_out from work and change is_working state to false', async () => {
+        await instance.check_out();
+        is_working = (await instance.is_working()).decodedResult;
+        assert.isFalse(is_working, 'Franchesca finished work');
     });
 
 })
