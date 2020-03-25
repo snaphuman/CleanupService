@@ -15,31 +15,55 @@
  *  PERFORMANCE OF THIS SOFTWARE.
  */
 
+const Ae = require('@aeternity/aepp-sdk').Universal;
+const Node = require('@aeternity/aepp-sdk').Node;
 const Deployer = require('aeproject-lib').Deployer;
 const EXAMPLE_CONTRACT_PATH = "./contracts/Franchesca.aes";
+
+const config = {
+    host: "http://localhost:3001/",
+    internalHost: "http://localhost:3001/internal/",
+    compilerUrl: "http://localhost:3080"
+};
 
 describe('Franchesca Contract', () => {
 
     let deployer;
     let instance;
+    let employeeClient;
     let ownerKeyPair = wallets[0];
+    let employeeKeyPair = wallets[1];
+    let employeeParams =
+        ['ak_286tvbfP6xe4GY9sEbuN2ftx1LpavQwFVcPor9H4GxBtq5fXws',
+         'Francisca',
+         'Ruiz',
+         '35463345',
+         35000,
+         6];
 
     before(async () => {
         deployer = new Deployer('local', ownerKeyPair.secretKey)
-    })
+        const node = await Node({ url: config.host })
 
-    let params = ['ak_286tvbfP6xe4GY9sEbuN2ftx1LpavQwFVcPor9H4GxBtq5fXws',
-                  'Francisca',
-                  'Ruiz',
-                  '35463345',
-                  35000,
-                  6];
+        employeeClient = await Ae({
+            url: config.host,
+            nodes: [{ name: 'local', instance: node }],
+            internalUrl: config.internalHost,
+            compilerUrl: config.compilerUrl,
+            keypair: employeeKeyPair,
+            nativeMode: true,
+            networkId: 'ae_devnet'
+        });
+    })
 
     it('Deploying Franchesca Contract', async () => {
-        const deployedPromise = deployer.deploy(EXAMPLE_CONTRACT_PATH, params) // Deploy it
+        deployedContractOwner = await deployer.deploy(EXAMPLE_CONTRACT_PATH, employeeParams);
 
-        await assert.isFulfilled(deployedPromise, 'Could not deploy the Franchesca Smart Contract'); // Check whether it's deployed
-        instance = await Promise.resolve(deployedPromise)
-    })
+        deployedContractEmployee = await deployedContractOwner.from(employeeKeyPair.secretKey);
+
+        await assert.isOk(deployedContractOwner, 'Could not deploy Franchesca Contract');
+
+        instance = deployedContractOwner
+    });
 
 })
