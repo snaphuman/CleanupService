@@ -60,17 +60,17 @@ contract Franchesca =
         put(state{ worked_days = [work_day] ++ state.worked_days, is_working = false })
 
     stateful entrypoint pay() : unit =
-        require(state.duration =< 0, "contract is done, no payments left")
+        require(state.duration >= 0, "contract is done, no payments left")
 
         let duration = state.duration
         let salary = calculate_salary(state.base_salary)
-        let total = List.length(state.worked_days) * salary
+        let total = total_worked_days() * salary
         let beneficiary = Pair.fst(state.employee)
         let payment = { date = Chain.block_height, amount = total, worked_days = state.worked_days }
 
-        put(state{ payments[duration] = payment, duration = state.duration - 1 })
+        put(state{ payments[duration] = payment, duration = (state.duration - 1) })
 
-        Chain.spend(beneficiary, total)
+        //Chain.spend(beneficiary, total)
 
     // Public functions to help contract testing
 
@@ -82,6 +82,16 @@ contract Franchesca =
 
     entrypoint work() =
         state.work
+
+    entrypoint total_worked_days() : int =
+        List.length(state.worked_days) - 1
+
+    entrypoint total_paid() : int =
+        let salary = calculate_salary(state.base_salary)
+        total_worked_days() * salary
+
+    entrypoint current_duration() : int =
+        state.duration
 
     // Internal functions
 

@@ -39,7 +39,7 @@ describe('Franchesca Contract', () => {
          'Ruiz',
          '35463345',
          35000,
-         6];
+         12];
 
     before(async () => {
         deployer = new Deployer('local', ownerKeyPair.secretKey)
@@ -85,4 +85,30 @@ describe('Franchesca Contract', () => {
         assert.isFalse(is_working, 'Franchesca finished work');
     });
 
-})
+    it('Franchesca works whole week and get paid', async () => {
+        let week_days = 3;
+        let calculated_salary = employeeParams[4] * 1.285 * week_days;
+        console.log("Calculated salary:", calculated_salary);
+
+        while (week_days != 0 ) {
+
+            await instance.check_in();
+            await instance.check_out();
+
+            console.log("Franchesca completed a work_day");
+            week_days --;
+        }
+
+        await instance.pay();
+        duration = (await instance.current_duration()).decodedResult;
+        console.log("Current duration:", duration);
+
+        let ct_total_paid = (await instance.total_paid()).decodedResult;
+        console.log("Contract paid:", ct_total_paid);
+
+        let total_worked_days = (await instance.total_worked_days()).decodedResult;
+        console.log("Total worked days", total_worked_days);
+
+        assert.equal(calculated_salary, ct_total_paid, 'Franchesca recieved ' . ct_total_paid);
+    });
+});
