@@ -24,7 +24,8 @@ contract Franchesca =
         work : option(work_day),
         base_salary : int,
         worked_days : list(work_day),
-        payments : map(int, payment) }
+        payments : map(int, payment),
+        total_funds : int}
 
     // API
 
@@ -43,7 +44,8 @@ contract Franchesca =
           is_working = false,
           work = None,
           worked_days = [],
-          payments = {} }
+          payments = {},
+          total_funds = 0 }
 
     stateful entrypoint check_in() : unit =
         require(!state.is_working, "Franchesca already checked in")
@@ -61,16 +63,22 @@ contract Franchesca =
 
     stateful entrypoint pay() : unit =
         require(state.duration >= 0, "contract is done, no payments left")
+        require(Call.caller == Contract.creator, "Only employer can make payments")
 
         let duration = state.duration
-        let salary = calculate_salary(state.base_salary)
-        let total = total_worked_days() * salary
+        let daily_salary = calculate_salary(state.base_salary)
+        let salary = total_worked_days() * daily_salary
         let beneficiary = Pair.fst(state.employee)
-        let payment = { date = Chain.block_height, amount = total, worked_days = state.worked_days }
+        let payment = { date = Chain.block_height, amount = salary, worked_days = state.worked_days }
 
+        Chain.spend(beneficiary, salary)
         put(state{ payments[duration] = payment, duration = (state.duration - 1) })
 
-        //Chain.spend(beneficiary, total)
+    stateful payable entrypoint add_funds() : unit =
+        let fund = Call.value
+        let total_funds = state.total_funds + fund
+        put(state{ total_funds = total_funds})
+
 
     // Public functions to help contract testing
 
@@ -92,6 +100,9 @@ contract Franchesca =
 
     entrypoint current_duration() : int =
         state.duration
+
+    entrypoint get_balance() : int =
+        Contract.balance
 
     // Internal functions
 

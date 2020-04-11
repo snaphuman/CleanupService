@@ -32,12 +32,13 @@ describe('Franchesca Contract', () => {
     let instance;
     let employeeClient;
     let ownerKeyPair = wallets[0];
-    let employeeKeyPair = wallets[1];
+    let patronKeyPair = wallets[1];
+    let employeeKeyPair = wallets[2];
     let employeeParams =
-        ['ak_286tvbfP6xe4GY9sEbuN2ftx1LpavQwFVcPor9H4GxBtq5fXws',
+        [employeeKeyPair.publicKey,
          'Francisca',
          'Ruiz',
-         '35463345',
+         35463345,
          35000,
          12];
 
@@ -54,16 +55,37 @@ describe('Franchesca Contract', () => {
             nativeMode: true,
             networkId: 'ae_devnet'
         });
+
+        patronClient = await Ae({
+            url: config.host,
+            nodes: [{ name: 'local', instance: node }],
+            internalUrl: config.internalHost,
+            compilerUrl: config.compilerUrl,
+            keypair: patronKeyPair,
+            nativeMode: true,
+            networkId: 'ae_devnet'
+        });
     })
 
     it('Deploying Franchesca Contract', async () => {
         deployedContractOwner = await deployer.deploy(EXAMPLE_CONTRACT_PATH, employeeParams);
 
+        deployedContractPatron = await deployedContractOwner.from(patronKeyPair.secretKey);
         deployedContractEmployee = await deployedContractOwner.from(employeeKeyPair.secretKey);
 
         await assert.isOk(deployedContractOwner, 'Could not deploy Franchesca Contract');
 
         instance = deployedContractOwner
+    });
+
+    it('Should add funds to contract balance', async() => {
+        patron = patronKeyPair.publicKey;
+
+        await deployedContractPatron.add_funds({amount: 300000});
+        balance = (await instance.get_balance()).decodedResult
+        console.log('Initial balance:', total_funds);
+
+        assert.equal(balance, 300000, 'Contract was succesfully funded');
     });
 
     it('Franchesca should check_in to work and change is_working state to true', async () => {
@@ -109,6 +131,16 @@ describe('Franchesca Contract', () => {
         let total_worked_days = (await instance.total_worked_days()).decodedResult;
         console.log("Total worked days", total_worked_days);
 
+        total_funds = (await instance.get_balance()).decodedResult;
+
         assert.equal(calculated_salary, ct_total_paid, 'Franchesca recieved ' . ct_total_paid);
     });
+
+    it('Should get contract balance after payment', async() => {
+        balance = (await instance.get_balance()).decodedResult
+        console.log('Remainging balance:', total_funds);
+
+        assert.equal(balance, 165075, 'Francisca was succesfully paid');
+    });
+
 });
