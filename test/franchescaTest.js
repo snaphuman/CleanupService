@@ -83,7 +83,7 @@ describe('Franchesca Contract', () => {
 
         await deployedContractPatron.add_funds({amount: 300000});
         balance = (await instance.get_balance()).decodedResult
-        console.log('Initial balance:', total_funds);
+        console.log('Initial balance:', balance);
 
         assert.equal(balance, 300000, 'Contract was succesfully funded');
     });
