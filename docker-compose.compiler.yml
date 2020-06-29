@@ -3,6 +3,6 @@ services:
   compiler:
     hostname: compiler
     privileged: true
-    image: 'aeternity/aesophia_http:v4.1.0'
+    image: 'aeternity/aesophia_http:v4.3.2'
     ports:
       - '3080:3080'
